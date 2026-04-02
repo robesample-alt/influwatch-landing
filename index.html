@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InfluWatch — Compensated Promoter Supervision</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:        #09090f;
+      --bg-2:      #0d1117;
+      --bg-3:      #111827;
+      --border:    #1f2937;
+      --border-2:  #2a3a4a;
+      --text:      #e8edf4;
+      --text-mid:  #8896a8;
+      --text-soft: #4a5568;
+      --amber:     #f59e0b;
+      --amber-dim: rgba(245,158,11,.1);
+      --amber-bdr: rgba(245,158,11,.25);
+      --green:     #4ade80;
+      --green-bg:  #052e1b;
+      --amber-pill:#fbbf24;
+      --amber-pbg: #3b2a05;
+      --red:       #f87171;
+      --red-bg:    #3f1010;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:'DM Sans',sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.55;
+      letter-spacing:-0.01em;
+    }
+    .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+
+    /* ── NAV ── */
+    header{
+      position:sticky;top:0;z-index:20;
+      background:rgba(9,9,15,.94);
+      backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--border);
+    }
+    .nav{display:flex;justify-content:space-between;align-items:center;padding:15px 0}
+    .brand-wordmark{display:inline-block;color:#fff;font-weight:700;font-size:19px;letter-spacing:-0.03em;font-family:'DM Sans',sans-serif;line-height:1}
+    .brand-wordmark span{color:var(--amber)}
+    .subbrand{
+      font-family:'DM Mono',monospace;
+      font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+      color:var(--text-soft);margin-top:2px;
+    }
+    .navlinks{display:flex;gap:24px;flex-wrap:wrap}
+    .navlinks a{
+      font-family:'DM Mono',monospace;
+      font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+      color:var(--text-mid);text-decoration:none;
+      transition:color .15s;
+    }
+    .navlinks a:hover{color:var(--text)}
+    .nav-cta{
+      padding:8px 18px;
+      border:1px solid var(--amber);
+      color:var(--amber);
+      font-family:'DM Mono',monospace;
+      font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+      text-decoration:none;border-radius:3px;
+      transition:all .15s;white-space:nowrap;
+    }
+    .nav-cta:hover{background:var(--amber);color:#000}
+
+    /* ── TYPE ── */
+    h1{
+      margin:18px 0 18px;
+      font-size:clamp(38px,6vw,62px);
+      line-height:1.02;letter-spacing:-0.04em;
+      color:#fff;max-width:680px;
+      font-weight:700;
+    }
+    h2{
+      margin:0 0 14px;
+      font-size:clamp(26px,3.5vw,38px);
+      line-height:1.08;letter-spacing:-0.03em;
+      color:var(--text);font-weight:700;
+    }
+    .kicker{
+      font-family:'DM Mono',monospace;
+      font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+      color:var(--amber);font-weight:500;margin-bottom:12px;
+      display:flex;align-items:center;gap:8px;
+    }
+    .kicker::before{content:'';width:16px;height:1px;background:var(--amber);flex-shrink:0}
+    .copy{font-size:17px;color:var(--text-mid);max-width:680px;line-height:1.75;font-weight:300}
+    .muted{color:var(--text-mid)}
+
+    /* ── EYEBROW ── */
+    .eyebrow{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 12px;
+      border:1px solid var(--amber-bdr);
+      background:var(--amber-dim);
+      border-radius:3px;
+      font-family:'DM Mono',monospace;
+      font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+      color:var(--amber);font-weight:500;
+    }
+
+    /* ── BTNS ── */
+    .btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
+    .btn{display:inline-block;padding:12px 20px;border-radius:4px;text-decoration:none;font-weight:600;font-size:14px;font-family:'DM Sans',sans-serif}
+    .btn-primary{background:var(--amber);color:#0a0800}
+    .btn-primary:hover{background:#fbbf24}
+    .btn-secondary{background:transparent;color:var(--text-mid);border:1px solid var(--border-2)}
+    .btn-secondary:hover{border-color:var(--text-soft);color:var(--text)}
+
+    /* ── HERO ── */
+    .hero{
+      background:linear-gradient(160deg,var(--bg) 0%,var(--bg-2) 100%);
+      color:var(--text);
+      padding:80px 0 64px;
+      border-bottom:1px solid var(--border);
+    }
+    .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:start}
+    .lead{font-size:18px;color:#8fa4bc;max-width:620px;margin:0 0 16px;line-height:1.7;font-weight:300}
+    .lead.small{font-size:16px;color:#b0c0d0}
+
+    /* ── TERMINAL WIDGET ── */
+    .terminal{
+      background:var(--bg-3);
+      border:1px solid var(--border);
+      border-radius:8px;padding:16px;
+      box-shadow:0 24px 64px rgba(0,0,0,.5);
+    }
+    .terminal-inner{
+      background:var(--bg-2);
+      border:1px solid var(--border);
+      border-radius:6px;padding:16px;
+    }
+    .terminal-top{
+      display:flex;justify-content:space-between;align-items:flex-start;
+      border-bottom:1px solid var(--border);
+      padding-bottom:12px;margin-bottom:14px;
+    }
+    .terminal-title{font-weight:600;color:#fff;font-size:14px}
+    .terminal-sub{
+      font-family:'DM Mono',monospace;
+      font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+      color:var(--text-soft);margin-top:4px;
+    }
+    .quote{
+      background:var(--bg);
+      border:1px solid var(--border-2);
+      border-left:2px solid var(--amber);
+      border-radius:0 4px 4px 0;
+      padding:12px 14px;
+      color:#fff;font-size:15px;font-weight:600;
+      font-style:italic;
+    }
+    .mock-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px;align-items:stretch}
+    .mock-card{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;flex-direction:column;min-height:170px}
+    .mock-card.critical{border-color:rgba(248,113,113,.2);background:rgba(248,113,113,.03)}
+    .mock-label{
+      font-family:'DM Mono',monospace;
+      font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+      color:var(--text-soft);margin-bottom:8px;
+    }
+    .mock-label.red{color:#fda4af}
+    .mock-title{font-weight:600;color:#fff;margin-bottom:8px;font-size:13px}
+    .mock-copy{font-size:12px;color:var(--text-mid);line-height:1.55;margin-top:8px}
+    .pill{
+      display:inline-block;padding:4px 9px;
+      border-radius:3px;
+      font-family:'DM Mono',monospace;
+      font-size:10px;font-weight:500;border:1px solid;
+      letter-spacing:.06em;
+    }
+    .pill.green{background:var(--green-bg);color:var(--green);border-color:#14532d}
+    .pill.amber{background:var(--amber-pbg);color:var(--amber-pill);border-color:#6b4f0b}
+    .pill.red{background:var(--red-bg);color:var(--red);border-color:#7f1d1d}
+    .mock-footer{
+      margin-top:12px;
+      background:var(--amber-dim);
+      border:1px solid var(--amber-bdr);
+      border-radius:4px;
+      padding:14px 16px;
+      color:#c8d3e1;font-size:13px;
+      font-family:'DM Mono',monospace;line-height:1.6;
+    }
+
+    /* ── SECTIONS ── */
+    section{padding:72px 0;border-top:1px solid var(--border)}
+
+    /* ── CARDS ── */
+    .card{
+      background:var(--bg-2);
+      border:1px solid var(--border);
+      border-radius:4px;padding:24px;
+    }
+    .card strong{display:block;font-size:16px;font-weight:600;color:var(--text);margin-bottom:4px}
+    .card p{margin:10px 0 0;color:var(--text-mid);font-size:14px;line-height:1.65}
+
+    /* ── GRIDS ── */
+    .grid2,.grid3,.grid4{display:grid;gap:1px;background:var(--border)}
+    .grid2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+    .grid3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+    .grid4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+    .grid-wrap{border:1px solid var(--border);border-radius:4px;overflow:hidden}
+    .grid-wrap .card{border:none;border-radius:0}
+
+    /* ── INSIGHT ── */
+    .split{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+    .comp-stack{display:flex;flex-direction:column;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:4px;overflow:hidden}
+    .comp-row{
+      background:var(--bg-2);
+      padding:14px 18px;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .comp-row:hover{background:var(--bg-3)}
+    .comp-name{font-weight:500;font-size:14px;color:var(--text)}
+    .comp-risk{
+      font-family:'DM Mono',monospace;
+      font-size:10px;letter-spacing:.08em;
+    }
+    .risk-low{color:#4ade80}
+    .risk-med{color:#facc15}
+    .risk-high{color:#fb923c}
+    .risk-crit{color:#f87171}
+
+    /* ── REGULATORY CALLOUT ── */
+    .reg-callout{
+      margin-top:24px;
+      padding:20px 22px;
+      border:1px solid var(--border-2);
+      border-left:2px solid var(--amber);
+      border-radius:0 4px 4px 0;
+      background:var(--bg-2);
+    }
+
+    /* ── COMPARE ── */
+    .compare{
+      border:1px solid var(--border);
+      border-radius:4px;overflow:hidden;
+      background:var(--bg-2);
+    }
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:16px 20px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+    th{
+      background:var(--bg-3);
+      font-family:'DM Mono',monospace;
+      font-size:10px;text-transform:uppercase;letter-spacing:.14em;
+      color:var(--text-soft);font-weight:500;
+    }
+    th:last-child{color:var(--amber)}
+    td{font-size:14px;color:var(--text-mid)}
+    td:last-child{color:var(--text);font-weight:500}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:rgba(255,255,255,.02)}
+
+    /* ── FAQ ── */
+    .faq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:4px;overflow:hidden}
+    .faq-item{background:var(--bg-2);padding:24px 26px}
+    .faq-item strong{display:block;font-size:15px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:10px}
+    .faq-item p{margin:0;color:var(--text-mid);font-size:14px;line-height:1.7;font-weight:300}
+
+    /* ── CTA ── */
+    .cta{background:var(--bg);border-top:1px solid var(--border)}
+    .cta h2{color:#fff}
+    .cta .copy{color:var(--text-mid)}
+
+    /* ── FOOTER ── */
+    footer{
+      background:var(--bg);
+      color:var(--text-soft);
+      padding:28px 0;
+      border-top:1px solid var(--border);
+      font-family:'DM Mono',monospace;
+      font-size:12px;letter-spacing:.04em;
+    }
+    footer .wrap{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:24px}
+    .footer-brand{display:flex;flex-direction:column;gap:4px}
+    .footer-brand-name{line-height:1}
+    footer .brand-wordmark{font-size:19px}
+    .footer-brand-sub{font-size:10px;color:var(--text-soft);letter-spacing:.14em;text-transform:uppercase}
+    .footer-links{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+    .footer-links a{color:var(--text-soft);text-decoration:none;font-size:11px;letter-spacing:.08em;transition:color .15s}
+    .footer-links a:hover{color:var(--text)}
+    .footer-social{display:flex;gap:12px;align-items:center}
+    .footer-social a{
+      width:30px;height:30px;
+      border:1px solid var(--border-2);
+      border-radius:3px;
+      display:flex;align-items:center;justify-content:center;
+      color:var(--text-soft);text-decoration:none;
+      transition:all .15s;
+      font-size:13px;
+    }
+    .footer-social a:hover{border-color:var(--amber);color:var(--amber)}
+    .footer-bottom{
+      width:100%;
+      border-top:1px solid var(--border);
+      padding-top:16px;margin-top:8px;
+      display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+      font-size:10px;color:var(--text-soft);letter-spacing:.06em;
+    }
+    .footer-legal{display:flex;gap:16px}
+    .footer-legal a{color:var(--text-soft);text-decoration:none;transition:color .15s}
+    .footer-legal a:hover{color:var(--text)}
+    .nav-login{
+      padding:7px 14px;
+      border:1px solid var(--border-2);
+      color:var(--text-mid);
+      font-family:'DM Mono',monospace;
+      font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+      text-decoration:none;border-radius:3px;
+      transition:all .15s;white-space:nowrap;
+    }
+    .nav-login:hover{border-color:var(--text-soft);color:var(--text)}
+
+    /* ── LISTS ── */
+    ul.clean{margin:0;padding:0;list-style:none}
+    ul.clean li{
+      display:flex;gap:10px;align-items:flex-start;
+      margin:10px 0;
+      font-family:'DM Mono',monospace;
+      font-size:12px;color:var(--text-mid);line-height:1.55;
+    }
+    ul.clean li::before{content:'→';color:var(--amber);flex-shrink:0;font-size:11px;margin-top:1px}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:900px){
+      .hero-grid,.split{grid-template-columns:1fr}
+      .navlinks{display:none}
+    }
+    @media(max-width:700px){
+      .nav{align-items:flex-start;flex-direction:column;gap:10px}
+      .mock-grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<header>
+  <div class="wrap nav">
+    <div>
+      <div class="brand-wordmark">Influ<span>Watch</span></div>
+      <div class="subbrand">a Fundurex company</div>
+    </div>
+    <div class="navlinks">
+      <a href="#how">Supervision workflow</a>
+      <a href="#who">Where it applies</a>
+      <a href="#fits">How It Fits</a>
+    </div>
+    <a href="https://app.influwatch.com/login" class="nav-login">Log In</a>
+    <a href="#demo" class="nav-cta">Book a Demo</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero" style="border-top:none">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">External promoter supervision</div>
+      <h1>You are responsible for external promoters.<br>InfluWatch makes that supervision defensible.</h1>
+      <p class="lead">InfluWatch helps broker-dealers, funding portals, RIAs, and fintechs supervise external promoters by understanding how compensation shapes behavior — and determining the appropriate supervisory outcome.</p>
+      <p class="lead small">The risk isn't the message. It's the incentive behind it.</p>
+      <p class="lead small" style="margin-top:10px;color:var(--amber);font-weight:400">Firms are already liable for external promoter behavior. Most just don't supervise it yet.</p>
+      <div class="btns">
+        <a class="btn btn-primary" href="#demo">Book a Demo</a>
+        <a class="btn btn-secondary" href="#how">See How It Works</a>
+      </div>
+    </div>
+
+    <div class="terminal">
+      <div class="terminal-inner">
+        <div class="terminal-top">
+          <div>
+            <div class="terminal-title">Same post. Different incentives. Different outcomes.</div>
+            <div class="terminal-sub">Why compensation changes the supervisory decision</div>
+          </div>
+        </div>
+        <div class="quote">"Check this out — link in bio"</div>
+        <div class="mock-grid">
+          <div class="mock-card">
+            <div class="mock-label">Issuer</div>
+            <div class="mock-title">Controlled communication</div>
+            <div class="pill green">Allowed</div>
+            <div class="mock-copy">Firm-controlled message within the expected communication framework.</div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-label">Flat Fee Promoter</div>
+            <div class="mock-title">Awareness-based promotion</div>
+            <div class="pill amber">Needs review</div>
+            <div class="mock-copy">Missing disclosure triggers required correction before approval.</div>
+          </div>
+          <div class="mock-card critical">
+            <div class="mock-label red">Per Conversion Promoter</div>
+            <div class="mock-title">Solicitation risk</div>
+            <div class="pill red">Escalation required</div>
+            <div class="mock-copy">The same words trigger a different outcome because compensation is tied to conversion.</div>
+          </div>
+        </div>
+        <div class="mock-footer">
+          <div class="mock-label" style="margin-bottom:6px;color:var(--amber)">Why this matters</div>
+          InfluWatch evaluates how incentives shape behavior — not just the message itself.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- THE PROBLEM -->
+<section>
+  <div class="wrap">
+    <div class="kicker">The problem</div>
+    <h2>Firms are responsible for behavior they don't directly control.</h2>
+    <p class="copy">Distribution increasingly happens through influencers, affiliates, and third-party promoters. Most compliance systems were built for employees and internal communications — not for incentive-driven external behavior.</p>
+  </div>
+</section>
+
+<!-- ENFORCEMENT EXPOSURE -->
+<section>
+  <div class="wrap">
+    <div class="kicker">What happens without supervision</div>
+    <h2>External promoters create real enforcement exposure.</h2>
+    <p class="copy" style="margin-bottom:28px">Firms are already responsible for third-party promotional activity — whether they directly control it or not. When incentives drive behavior, gaps in supervision become audit findings, enforcement actions, and legal risk.</p>
+
+    <div class="grid-wrap">
+      <div class="grid3">
+        <div class="card">
+          <div class="kicker">Missing disclosure</div>
+          <strong>Becomes an exam finding</strong>
+          <p>A promoter fails to disclose compensation. The content circulates publicly. Without detection and documented remediation, this becomes a clear supervisory gap.</p>
+        </div>
+        <div class="card">
+          <div class="kicker">Conversion-based compensation</div>
+          <strong>Creates solicitation risk</strong>
+          <p>When promoters are paid per conversion, behavior shifts toward persuasion. What looks like marketing can be interpreted as unregistered solicitation activity.</p>
+        </div>
+        <div class="card">
+          <div class="kicker">No audit trail</div>
+          <strong>Breaks defensibility</strong>
+          <p>If a firm cannot show how content was reviewed, escalated, and resolved, it cannot demonstrate a functioning supervisory system.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="reg-callout" style="margin-top:20px">
+      <div class="kicker">Regulatory reality</div>
+      <p class="copy" style="font-size:15px">Firms are expected to supervise promotional activity tied to their business — even when that activity originates from third parties. Enforcement actions consistently point to failures in disclosure monitoring, supervision, and recordkeeping.</p>
+    </div>
+  </div>
+</section>
+
+<!-- INSIGHT -->
+<section>
+  <div class="wrap split">
+    <div>
+      <div class="kicker">The insight</div>
+      <h2>Compensation creates behavior.<br>Behavior creates risk.</h2>
+      <p class="copy">A promoter paid a flat fee behaves differently than one paid on conversion. InfluWatch classifies the compensation relationship first, then evaluates behavior in that context.</p>
+    </div>
+    <div>
+      <div class="comp-stack">
+        <div class="comp-row">
+          <span class="comp-name">Flat Fee</span>
+          <span class="comp-risk risk-low">Awareness · Lower risk</span>
+        </div>
+        <div class="comp-row">
+          <span class="comp-name">Referral</span>
+          <span class="comp-risk risk-med">Influence · Moderate risk</span>
+        </div>
+        <div class="comp-row">
+          <span class="comp-name">Revenue Share</span>
+          <span class="comp-risk risk-high">Persuasion · High risk</span>
+        </div>
+        <div class="comp-row">
+          <span class="comp-name">Per Conversion</span>
+          <span class="comp-risk risk-crit">Solicitation · Critical risk</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="wrap">
+    <div class="kicker">Supervision workflow</div>
+    <h2>InfluWatch supervises the full promoter lifecycle.</h2>
+    <div class="grid-wrap" style="margin-top:28px">
+      <div class="grid3">
+        <div class="card">
+          <div class="kicker">Before promotion</div>
+          <ul class="clean">
+            <li>Register promoters</li>
+            <li>Classify compensation posture</li>
+            <li>Lock approved structures</li>
+            <li>Route content through pre-approval</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="kicker">During promotion</div>
+          <ul class="clean">
+            <li>Capture off-platform content</li>
+            <li>Ingest video and transcription</li>
+            <li>Detect missing disclosures, solicitation behavior, and compensation-driven violations</li>
+            <li>Monitor tail-period activity</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="kicker">When something is flagged</div>
+          <ul class="clean">
+            <li>Route to review queue</li>
+            <li>Escalate critical issues automatically</li>
+            <li>Require supervisory rationale</li>
+            <li>Export evidence packages</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHO -->
+<section id="who">
+  <div class="wrap">
+    <div class="kicker">Where it applies</div>
+    <h2>Built for firms exposed to external distribution risk.</h2>
+    <div class="grid-wrap" style="margin-top:28px">
+      <div class="grid4">
+        <div class="card"><strong>Funding Portals</strong><p>Supervise issuer-sponsored promoter activity before it becomes an examination problem.</p></div>
+        <div class="card"><strong>Broker-Dealers</strong><p>Extend supervision beyond employees and registered reps to compensated external distribution.</p></div>
+        <div class="card"><strong>Fintechs</strong><p>Monitor conversion-driven external promotion tied to account opening, deposits, and trading activity.</p></div>
+        <div class="card"><strong>RIAs</strong><p>Bring structure and defensibility to affiliate, referral, and promoter-driven acquisition channels.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON -->
+<section>
+  <div class="wrap">
+    <div class="kicker">The gap every firm has</div>
+    <h2>The obligation exists.<br>The infrastructure doesn't.</h2>
+    <p class="copy" style="margin-bottom:28px">Every regulated firm using external promoters carries a supervisory obligation. Most have no systematic way to meet it for off-platform promoter activity. Defensibility — the ability to demonstrate a functioning supervisory system — is the conclusion that matters.</p>
+    <div class="compare" style="margin-top:0">
+      <table>
+        <tr>
+          <th>Firm type</th>
+          <th>Supervision obligation</th>
+          <th>External promoter coverage</th>
+          <th>Defensible record</th>
+        </tr>
+        <tr>
+          <td>Broker-Dealer</td>
+          <td style="color:var(--green)">Yes</td>
+          <td style="color:var(--amber)">Promoter activity often occurs across channels with limited centralized visibility</td>
+          <td style="color:var(--amber)">Supervisory decisions are often applied inconsistently</td>
+        </tr>
+        <tr>
+          <td>Reg CF Portal</td>
+          <td style="color:var(--green)">Yes</td>
+          <td style="color:var(--amber)">On-platform activity is visible, but off-platform promotion can be difficult to monitor consistently</td>
+          <td style="color:var(--amber)">Linkage between off-platform activity and supervision is not always clearly documented</td>
+        </tr>
+        <tr>
+          <td>RIA</td>
+          <td style="color:var(--green)">Yes</td>
+          <td style="color:var(--amber)">Oversight of affiliate and referral-driven promotion is often fragmented across advisors and channels</td>
+          <td style="color:var(--amber)">Supervision is centralized, but execution and documentation can vary in practice</td>
+        </tr>
+        <tr>
+          <td>Fintech (regulated product)</td>
+          <td style="color:var(--amber)">Varies</td>
+          <td style="color:var(--amber)">External growth channels are often used with limited structured supervision</td>
+          <td style="color:var(--amber)">Monitoring may exist, but supervisory rationale is not consistently recorded</td>
+        </tr>
+        <tr style="border-top:1px solid var(--border-2)">
+          <td style="color:var(--text);font-weight:600">With InfluWatch</td>
+          <td style="color:var(--green);font-weight:600">Yes</td>
+          <td style="color:var(--green);font-weight:600">Covered — systematically, across all promoters</td>
+          <td style="color:var(--green);font-weight:600">Complete — structured, signed, examination-ready</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- DEFENSIBILITY -->
+<section>
+  <div class="wrap">
+    <div class="kicker">How defensibility is created</div>
+    <h2>From content to audit trail.</h2>
+    <div class="grid-wrap" style="margin-top:28px">
+      <div class="grid4">
+        <div class="card"><strong>1. Capture</strong><p>Content is ingested across platforms, including video and transcription.</p></div>
+        <div class="card"><strong>2. Detect</strong><p>Disclosure gaps, compensation signals, and solicitation behavior are identified.</p></div>
+        <div class="card"><strong>3. Escalate</strong><p>Risk level determines required supervisory action — not just a score.</p></div>
+        <div class="card"><strong>4. Record</strong><p>Every decision, rationale, and action is logged into an audit-ready evidence trail.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT FITS -->
+<section id="fits">
+  <div class="wrap">
+    <div class="kicker">How It Fits</div>
+    <h2>Inside your existing supervisory program.</h2>
+    <div class="grid-wrap" style="margin-top:28px">
+      <div class="grid2">
+        <div class="card">
+          <div class="kicker">Your WSPs stay in place</div>
+          <strong>InfluWatch enforces what your written supervisory procedures describe.</strong>
+          <p>It does not replace them. It gives you the technical infrastructure your WSPs require but cannot currently enforce for external promoters.</p>
+        </div>
+        <div class="card">
+          <div class="kicker">Your principals stay in charge</div>
+          <strong>Every supervisory decision is made by your designated supervisor or registered principal.</strong>
+          <p>InfluWatch routes the right content to the right person and records what they decided — with rationale and regulatory citation.</p>
+        </div>
+        <div class="card">
+          <div class="kicker">Your agreements stay in place</div>
+          <strong>Existing promoter contracts are unchanged.</strong>
+          <p>InfluWatch adds the monitoring and supervisory layer on top of the relationship you already have. Compensation classification takes minutes per promoter.</p>
+        </div>
+        <div class="card">
+          <div class="kicker">Implementation is a compliance function</div>
+          <strong>No IT project. No API integration on your end.</strong>
+          <p>Most firms are capturing and reviewing off-platform promoter content within days of setup. InfluWatch connects to the social accounts your promoters already use.</p>
+        </div>
+        <div class="card">
+          <div class="kicker">The examination answer is built in</div>
+          <strong>When FINRA asks — you can demonstrate it.</strong>
+          <p>The audit log, evidence exports, supervisory decisions, and compensation classification history are all there. Cryptographically signed. Ready.</p>
+        </div>
+        <div class="card">
+          <div class="kicker">Promoters have a separate portal</div>
+          <strong>Promoters submit content and track status through a limited portal.</strong>
+          <p>They do not have access to internal supervision, audit, or decision workflows. The supervisory record is firm-only.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="demo">
+  <div class="wrap">
+    <div class="kicker">Book a demo</div>
+    <h2>If incentives drive your distribution,<br>they should drive your supervision.</h2>
+    <p class="copy">InfluWatch supervises compensated promoters from pre-approval to audit trail.</p>
+    <div class="btns" style="margin-top:24px">
+      <a class="btn btn-primary" href="mailto:demo@influwatch.com">Request a Demo</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="footer-brand">
+      <div class="footer-brand-name"><div class="brand-wordmark">Influ<span>Watch</span></div></div>
+      <div class="footer-brand-sub">a Fundurex company</div>
+    </div>
+    <div class="footer-links">
+      <a href="#how">Supervision workflow</a>
+      <a href="#who">Where it applies</a>
+      <a href="#fits">How it fits</a>
+      <a href="#demo">Book a demo</a>
+    </div>
+    <div class="footer-social">
+      <!-- LinkedIn -->
+      <a href="https://linkedin.com/company/influwatch" title="LinkedIn" aria-label="LinkedIn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      </a>
+      <!-- Twitter/X -->
+      <a href="https://x.com/influwatch" title="X / Twitter" aria-label="X">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.727-8.835L1.254 2.25H8.08l4.253 5.622 5.91-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </a>
+    </div>
+    <div class="footer-bottom">
+      <div>© 2026 Fundurex LLC · All rights reserved</div>
+      <div class="footer-legal">
+        <a href="/privacy">Privacy Policy</a>
+        <a href="/terms">Terms of Service</a>
+        <a href="mailto:demo@influwatch.com">Contact</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  });
+});
+
+// Subtle fade-in on scroll
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting
