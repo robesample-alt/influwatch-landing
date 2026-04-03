@@ -358,10 +358,56 @@
       .nav{align-items:flex-start;flex-direction:column;gap:10px}
       .mock-grid{grid-template-columns:1fr}
     }
+    /* ── PASSWORD GATE ── */
+    #pw-gate{
+      position:fixed;top:0;left:0;width:100%;height:100%;
+      background:var(--bg);z-index:9999;
+      display:flex;align-items:center;justify-content:center;
+      flex-direction:column;
+    }
+    #pw-gate .gate-brand{
+      font-family:'DM Sans',sans-serif;font-size:22px;font-weight:700;
+      color:#fff;letter-spacing:-0.03em;margin-bottom:6px;
+    }
+    #pw-gate .gate-brand span{color:var(--amber)}
+    #pw-gate .gate-sub{
+      font-family:'DM Mono',monospace;font-size:10px;
+      letter-spacing:.18em;text-transform:uppercase;
+      color:var(--text-soft);margin-bottom:32px;
+    }
+    #pw-gate input{
+      width:280px;padding:12px 14px;margin-bottom:12px;
+      background:var(--bg-2);border:1px solid var(--border-2);border-radius:4px;
+      color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;
+      outline:none;transition:border-color .15s;text-align:center;
+    }
+    #pw-gate input:focus{border-color:var(--amber)}
+    #pw-gate button{
+      width:280px;padding:12px;border:none;border-radius:4px;
+      background:var(--amber);color:#0a0800;font-weight:600;font-size:14px;
+      font-family:'DM Sans',sans-serif;cursor:pointer;transition:background .15s;
+    }
+    #pw-gate button:hover{background:#fbbf24}
+    #pw-gate .gate-err{
+      color:var(--red);font-size:13px;margin-top:12px;
+      font-family:'DM Sans',sans-serif;min-height:20px;
+    }
+    #site-content{display:none}
   </style>
 </head>
 <body>
 
+<!-- PASSWORD GATE -->
+<div id="pw-gate">
+  <div class="gate-brand">Influ<span>Watch</span></div>
+  <div class="gate-sub">a Fundurex company</div>
+  <input type="password" id="pw-input" placeholder="Enter access code" autofocus
+    onkeydown="if(event.key==='Enter')checkPw()" />
+  <button onclick="checkPw()">Enter</button>
+  <div class="gate-err" id="pw-err"></div>
+</div>
+
+<div id="site-content">
 <!-- NAV -->
 <header>
   <div class="wrap nav">
@@ -823,5 +869,20 @@ function loginSubmit(e) {
   </div>
 </div>
 
+</div><!-- /site-content -->
+
+<script>
+function checkPw() {
+  var v = document.getElementById('pw-input').value;
+  if (v === 'influwatch2026') {
+    document.getElementById('pw-gate').style.display = 'none';
+    document.getElementById('site-content').style.display = 'block';
+  } else {
+    document.getElementById('pw-err').textContent = 'Incorrect access code';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+}
+</script>
 </body>
 </html>
