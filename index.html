@@ -838,12 +838,11 @@ function loginSubmit(e) {
     if (data.token) {
       localStorage.setItem('iw_token', data.token);
       localStorage.setItem('iw_user', JSON.stringify(data.actor || data.user));
-      msg.textContent = 'Login successful!';
+      msg.textContent = 'Login successful! Redirecting...';
       msg.className = 'demo-msg ok';
       setTimeout(() => {
-        document.getElementById('login-modal').style.display = 'none';
-        msg.textContent = '';
-      }, 1500);
+        window.location.href = 'https://influwatch-app.vercel.app';
+      }, 1000);
     } else {
       msg.textContent = data.message || data.error || 'Invalid credentials';
       msg.className = 'demo-msg err';
