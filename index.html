@@ -822,19 +822,24 @@ function loginSubmit(e) {
   msg.textContent = '';
   msg.className = 'demo-msg';
 
-  fetch(API + '/api/influwatch/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password })
+  msg.textContent = 'Connecting to server...';
+  msg.className = 'demo-msg';
+
+  // Wake the server first (Render free tier cold start), then login
+  fetch(API + '/health').catch(() => {}).then(() => {
+    return fetch(API + '/api/influwatch/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
   })
   .then(r => r.json())
   .then(data => {
     if (data.token) {
       localStorage.setItem('iw_token', data.token);
       localStorage.setItem('iw_user', JSON.stringify(data.actor || data.user));
-      msg.textContent = 'Login successful! Redirecting...';
+      msg.textContent = 'Login successful!';
       msg.className = 'demo-msg ok';
-      // For now just close modal since there's no dashboard yet
       setTimeout(() => {
         document.getElementById('login-modal').style.display = 'none';
         msg.textContent = '';
@@ -845,7 +850,7 @@ function loginSubmit(e) {
     }
   })
   .catch(() => {
-    msg.textContent = 'Connection error. Please try again.';
+    msg.textContent = 'Server is waking up. Please try again in a few seconds.';
     msg.className = 'demo-msg err';
   })
   .finally(() => {
