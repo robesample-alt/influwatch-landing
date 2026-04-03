@@ -318,6 +318,27 @@
     }
     .nav-login:hover{border-color:var(--text-soft);color:var(--text)}
 
+    /* ── DEMO FORM ── */
+    .demo-form{max-width:480px;margin:24px auto 0;text-align:left}
+    .demo-form input,.demo-form textarea{
+      width:100%;padding:12px 14px;margin-bottom:12px;
+      background:var(--bg-2);border:1px solid var(--border-2);border-radius:4px;
+      color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;
+      outline:none;transition:border-color .15s;
+    }
+    .demo-form input:focus,.demo-form textarea:focus{border-color:var(--amber)}
+    .demo-form textarea{resize:vertical;min-height:100px}
+    .demo-form button{
+      width:100%;padding:12px;border:none;border-radius:4px;
+      background:var(--amber);color:#0a0800;font-weight:600;font-size:14px;
+      font-family:'DM Sans',sans-serif;cursor:pointer;transition:background .15s;
+    }
+    .demo-form button:hover{background:#fbbf24}
+    .demo-form button:disabled{opacity:.6;cursor:not-allowed}
+    .demo-msg{text-align:center;margin-top:12px;font-size:14px}
+    .demo-msg.ok{color:var(--green)}
+    .demo-msg.err{color:var(--red)}
+
     /* ── LISTS ── */
     ul.clean{margin:0;padding:0;list-style:none}
     ul.clean li{
@@ -353,7 +374,7 @@
       <a href="#who">Where it applies</a>
       <a href="#fits">How It Fits</a>
     </div>
-    <a href="https://app.influwatch.com/login" class="nav-login">Log In</a>
+    <a href="https://influwatch-backend-production.up.railway.app/api/influwatch/auth/login" class="nav-login" onclick="event.preventDefault();document.getElementById('login-modal').style.display='flex'">Log In</a>
     <a href="#demo" class="nav-cta">Book a Demo</a>
   </div>
 </header>
@@ -649,13 +670,17 @@
 
 <!-- CTA -->
 <section class="cta" id="demo">
-  <div class="wrap">
-    <div class="kicker">Book a demo</div>
+  <div class="wrap" style="text-align:center">
+    <div class="kicker" style="justify-content:center">Book a demo</div>
     <h2>If incentives drive your distribution,<br>they should drive your supervision.</h2>
-    <p class="copy">InfluWatch supervises compensated promoters from pre-approval to audit trail.</p>
-    <div class="btns" style="margin-top:24px">
-      <a class="btn btn-primary" href="mailto:demo@influwatch.com">Request a Demo</a>
-    </div>
+    <p class="copy" style="margin:0 auto">InfluWatch supervises compensated promoters from pre-approval to audit trail.</p>
+    <form class="demo-form" id="demo-form" onsubmit="submitDemo(event)">
+      <input type="text" name="name" placeholder="Full name" required />
+      <input type="email" name="email" placeholder="Email address" required />
+      <textarea name="message" placeholder="Tell us about your firm and what you're looking for..."></textarea>
+      <button type="submit">Request a Demo</button>
+    </form>
+    <div class="demo-msg" id="demo-msg"></div>
   </div>
 </section>
 
@@ -705,4 +730,99 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 // Subtle fade-in on scroll
 const obs = new IntersectionObserver(entries => {
   entries.forEach(e => {
-    if (e.isIntersecting
+    if (e.isIntersecting) { e.target.style.opacity = 1; e.target.style.transform = 'none'; }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('section').forEach(s => {
+  s.style.opacity = 0; s.style.transform = 'translateY(20px)';
+  s.style.transition = 'opacity .6s ease, transform .6s ease';
+  obs.observe(s);
+});
+
+const API = 'https://influwatch-backend-production.up.railway.app';
+
+// Demo form
+async function submitDemo(e) {
+  e.preventDefault();
+  const form = e.target;
+  const btn = form.querySelector('button');
+  const msg = document.getElementById('demo-msg');
+  const data = Object.fromEntries(new FormData(form));
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  msg.textContent = '';
+  msg.className = 'demo-msg';
+
+  // Send as email via mailto fallback for now
+  const subject = encodeURIComponent('Demo Request from ' + data.name);
+  const body = encodeURIComponent('Name: ' + data.name + '\nEmail: ' + data.email + '\n\n' + (data.message || ''));
+  window.location.href = 'mailto:demo@influwatch.com?subject=' + subject + '&body=' + body;
+
+  msg.textContent = 'Opening your email client...';
+  msg.className = 'demo-msg ok';
+  btn.disabled = false;
+  btn.textContent = 'Request a Demo';
+}
+
+// Login modal
+function loginSubmit(e) {
+  e.preventDefault();
+  const form = e.target;
+  const btn = form.querySelector('button');
+  const msg = document.getElementById('login-msg');
+  const email = form.email.value;
+  const password = form.password.value;
+  btn.disabled = true;
+  btn.textContent = 'Logging in...';
+  msg.textContent = '';
+  msg.className = 'demo-msg';
+
+  fetch(API + '/api/influwatch/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.token) {
+      localStorage.setItem('iw_token', data.token);
+      localStorage.setItem('iw_user', JSON.stringify(data.actor || data.user));
+      msg.textContent = 'Login successful! Redirecting...';
+      msg.className = 'demo-msg ok';
+      // For now just close modal since there's no dashboard yet
+      setTimeout(() => {
+        document.getElementById('login-modal').style.display = 'none';
+        msg.textContent = '';
+      }, 1500);
+    } else {
+      msg.textContent = data.message || data.error || 'Invalid credentials';
+      msg.className = 'demo-msg err';
+    }
+  })
+  .catch(() => {
+    msg.textContent = 'Connection error. Please try again.';
+    msg.className = 'demo-msg err';
+  })
+  .finally(() => {
+    btn.disabled = false;
+    btn.textContent = 'Log In';
+  });
+}
+</script>
+
+<!-- LOGIN MODAL -->
+<div id="login-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center">
+  <div style="background:var(--bg-2);border:1px solid var(--border-2);border-radius:8px;padding:32px;width:100%;max-width:400px;position:relative">
+    <button onclick="this.closest('#login-modal').style.display='none'" style="position:absolute;top:12px;right:16px;background:none;border:none;color:var(--text-mid);font-size:20px;cursor:pointer">&times;</button>
+    <div class="kicker" style="justify-content:center">InfluWatch Login</div>
+    <form class="demo-form" onsubmit="loginSubmit(event)" style="margin-top:16px">
+      <input type="email" name="email" placeholder="Email address" required />
+      <input type="password" name="password" placeholder="Password" required />
+      <button type="submit">Log In</button>
+    </form>
+    <div class="demo-msg" id="login-msg"></div>
+  </div>
+</div>
+
+</body>
+</html>
